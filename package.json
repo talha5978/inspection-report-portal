@@ -4,18 +4,19 @@
 	"private": true,
 	"description": "Client Portal + QR Code Document Access System",
 	"scripts": {
-		"dev": "turbo run dev",
-		"build": "turbo run build",
-		"start": "turbo run start",
+		"dev": "dotenv -- turbo run dev",
+		"build": "dotenv -- turbo run build",
+		"start": "dotenv -- turbo run start",
 		"format": "prettier . --write \"**/*.{js,ts,tsx,jsx,json,md,css,scss,yaml}\"",
-		"db:generate": "turbo run db:generate",
-		"db:migrate": "turbo run db:migrate",
-		"db:push": "turbo run db:push"
+		"db:generate": "dotenv -- turbo run db:generate --filter=@inspection-report-portal/db",
+		"db:migrate": "dotenv -- turbo run db:migrate --filter=@inspection-report-portal/db",
+		"db:push": "dotenv -- turbo run db:push --filter=@inspection-report-portal/db"
 	},
 	"lint-staged": {
 		"*.{js,ts,tsx,jsx,json,md,css,scss,yaml}": "prettier --write"
 	},
 	"devDependencies": {
+		"dotenv-cli": "^11.0.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.8",
 		"prettier": "3.9.0",

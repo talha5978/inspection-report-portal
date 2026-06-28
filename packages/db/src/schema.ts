@@ -45,16 +45,20 @@ export const documents = pgTable(
 	(table) => [index("documents_uploaded_by_idx").on(table.uploadedBy)],
 );
 
-export const documentAssignments = pgTable("document_assignments", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	documentId: uuid("document_id")
-		.references(() => documents.id, { onDelete: "cascade" })
-		.notNull(),
-	clientId: uuid("client_id")
-		.references(() => users.id, { onDelete: "cascade" })
-		.notNull(),
-	assignedAt: timestamp("assigned_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
-}, (table) => [index("doc_assignments_client_idx").on(table.clientId)]);
+export const documentAssignments = pgTable(
+	"document_assignments",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		documentId: uuid("document_id")
+			.references(() => documents.id, { onDelete: "cascade" })
+			.notNull(),
+		clientId: uuid("client_id")
+			.references(() => users.id, { onDelete: "cascade" })
+			.notNull(),
+		assignedAt: timestamp("assigned_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
+	},
+	(table) => [index("doc_assignments_client_idx").on(table.clientId)],
+);
 
 export const qrCodes = pgTable(
 	"qr_codes",
