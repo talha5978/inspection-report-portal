@@ -18,6 +18,10 @@ export default defineConfig({
 		tsconfigPaths: true,
 	},
 	server: {
-		port: 5174,
+		port: 5173,
+	},
+	define: {
+		"process.env.VITE_ENV": JSON.stringify(process.env.VITE_ENV),
+		"process.env.CLERK_PUBLISHABLE_KEY": JSON.stringify(process.env.CLERK_PUBLISHABLE_KEY),
 	},
 });

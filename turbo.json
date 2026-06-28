@@ -1,12 +1,28 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"globalEnv": ["NODE_ENV", "PG_CONNECTION_STRING"],
+	"globalEnv": [
+		"NODE_ENV",
+		"VITE_ENV",
+		"BACKEND_PORT",
+		"ADMIN_PORTAL_URL",
+		"CLIENT_PORTAL_URL",
+		"API_BASE_URL",
+		"PG_CONNECTION_STRING",
+		"CLERK_PUBLISHABLE_KEY",
+		"CLERK_SECRET_KEY",
+		"CLERK_SIGN_IN_URL",
+		"CLERK_SIGN_UP_URL"
+	],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
 			"outputs": [".react-router/**", "dist/**", "build/**"]
 		},
 		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"start": {
 			"cache": false,
 			"persistent": true
 		},

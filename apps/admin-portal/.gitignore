@@ -1,0 +1,11 @@
+.DS_Store
+.env
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
+/dist/
+.turbo
+# clerk configuration (can include secrets)
+/.clerk/
