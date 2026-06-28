@@ -3,7 +3,7 @@ import errorHandlerPlugin from "~/plugins/error-handler";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
 import { connectDB } from "@inspection-report-portal/db";
-import { createClerkClient } from "~/lib/clerk";
+import { clerkAuthMiddleware, createClerkClient } from "~/lib/clerk";
 import { clerkPlugin } from "@clerk/fastify";
 import { authRoutes } from "~/routes/auth.routes";
 import { documentRoutes } from "~/routes/document.routes";
@@ -18,9 +18,6 @@ export async function server(fastify: FastifyInstance) {
 
 	await fastify.register(fastifyCookie);
 
-	await fastify.register(authRoutes, { prefix: "/api/auth" });
-	await fastify.register(documentRoutes, { prefix: "/api/documents" });
-
 	const dbConnection = await connectDB(process.env.PG_CONNECTION_STRING!);
 	fastify.decorate("db", dbConnection.db);
 
@@ -31,4 +28,13 @@ export async function server(fastify: FastifyInstance) {
 		secretKey: process.env.CLERK_SECRET_KEY!,
 		publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY!,
 	});
+
+	fastify.addHook("onRequest", async (request, _reply) => {
+		if (request.url.startsWith("/api")) {
+			await clerkAuthMiddleware(request);
+		}
+	});
+
+	await fastify.register(authRoutes, { prefix: "/api/auth" });
+	await fastify.register(documentRoutes, { prefix: "/api/documents" });
 }
