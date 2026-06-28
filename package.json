@@ -1,0 +1,26 @@
+{
+	"name": "inspection-report-portal",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Client Portal + QR Code Document Access System",
+	"scripts": {
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"start": "turbo run start",
+		"format": "prettier . --write \"**/*.{js,ts,tsx,jsx,json,md,css,scss,yaml}\"",
+		"db:generate": "turbo run db:generate",
+		"db:migrate": "turbo run db:migrate",
+		"db:push": "turbo run db:push"
+	},
+	"lint-staged": {
+		"*.{js,ts,tsx,jsx,json,md,css,scss,yaml}": "prettier --write"
+	},
+	"devDependencies": {
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.8",
+		"prettier": "3.9.0",
+		"turbo": "^2.0.0"
+	},
+	"packageManager": "pnpm@11.1.1",
+	"type": "module"
+}
