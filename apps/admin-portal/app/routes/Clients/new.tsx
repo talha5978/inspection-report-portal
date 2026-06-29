@@ -26,12 +26,9 @@ const NewClientSchema = z.object({
 		.refine((value) => value.trim() !== "", {
 			message: "v is required",
 		}),
-	email: z
-		.string()
-		.email("Please enter a valid email address")
-		.refine((value) => value.trim() !== "", {
-			message: "Email address is required",
-		}),
+	email: z.email("Please enter a valid email address").refine((value) => value.trim() !== "", {
+		message: "Email address is required",
+	}),
 	password: z
 		.string()
 		.min(8, "Password must be at least 8 characters")

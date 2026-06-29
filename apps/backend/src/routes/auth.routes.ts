@@ -2,6 +2,7 @@ import { type FastifyInstance } from "fastify";
 import { users, type User } from "@inspection-report-portal/db";
 import { ApiError } from "~/utils/ApiError";
 import { requireRole } from "~/middlewares/roleGaurd";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 
 export async function authRoutes(fastify: FastifyInstance) {
 	fastify.post(
@@ -72,6 +73,77 @@ export async function authRoutes(fastify: FastifyInstance) {
 				.returning();
 
 			return reply.success<User>(dbUser, "User created successfully", 201);
+		},
+	);
+
+	fastify.get(
+		"/clients",
+		{
+			preHandler: [requireRole(["admin"])],
+		},
+		async (request, reply) => {
+			try {
+				const {
+					pageIndex = "0",
+					pageSize = "10",
+					search = "",
+				} = request.query as {
+					pageIndex?: string;
+					pageSize?: string;
+					search?: string;
+				};
+
+				const page = parseInt(pageIndex);
+				const limit = parseInt(pageSize);
+				const offset = page * limit;
+
+				const searchTerm = search.trim();
+
+				const baseCondition = eq(users.role, "client");
+
+				let whereCondition = baseCondition;
+
+				if (searchTerm) {
+					whereCondition = and(
+						baseCondition,
+						or(ilike(users.name, `%${searchTerm}%`), ilike(users.email, `%${searchTerm}%`)),
+					)!;
+				}
+
+				const clients = await fastify.db
+					.select({
+						id: users.id,
+						name: users.name,
+						email: users.email,
+						isActive: users.isActive,
+						createdAt: users.createdAt,
+					})
+					.from(users)
+					.where(whereCondition)
+					.orderBy(desc(users.createdAt))
+					.limit(limit)
+					.offset(offset);
+
+				const totalResult = await fastify.db
+					.select({ count: count() })
+					.from(users)
+					.where(whereCondition);
+
+				const total = totalResult[0].count;
+
+				return reply.success({
+					clients,
+					pagination: {
+						page,
+						pageSize: limit,
+						total,
+						pageCount: Math.ceil(total / limit),
+					},
+				});
+			} catch (error) {
+				console.error(error);
+				throw error;
+			}
 		},
 	);
 }
