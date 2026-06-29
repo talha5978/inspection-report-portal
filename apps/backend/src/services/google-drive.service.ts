@@ -76,6 +76,16 @@ export class GoogleDriveService {
 			requestBody: { role: "reader", type: "anyone" },
 		});
 	}
+
+	async deleteFile(fileId: string): Promise<boolean> {
+		try {
+			await this.drive.files.delete({ fileId });
+			return true;
+		} catch (error) {
+			console.error("Failed to delete file from Google Drive:", error);
+			return false;
+		}
+	}
 }
 
 export const googleDriveService = new GoogleDriveService();

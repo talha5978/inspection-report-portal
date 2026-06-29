@@ -28,7 +28,9 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 				</SidebarFooter>
 			</Sidebar>
 			<SidebarInset>
-				<section className="@container/main sm:p-6 p-4">{children}</section>
+				<section className="@container/main min-h-full overflow-y-auto sm:p-6 p-4">
+					{children}
+				</section>
 			</SidebarInset>
 		</SidebarProvider>
 	);

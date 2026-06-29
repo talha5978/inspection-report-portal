@@ -1,4 +1,5 @@
-import { documents } from "@inspection-report-portal/db";
+import { documents, users } from "@inspection-report-portal/db";
+import { eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "~/middlewares/roleGaurd";
 import { googleDriveService } from "~/services/google-drive.service";
@@ -11,35 +12,56 @@ export async function documentRoutes(fastify: FastifyInstance) {
 			preHandler: [requireRole(["admin"])],
 		},
 		async (request, reply) => {
-			const data = await request.file();
+			let driveFileId: string | null = null;
 
-			if (!data) {
-				throw new ApiError("No file uploaded", 400, "NO_FILE_UPLOADED");
+			try {
+				const data = await request.file();
+
+				if (!data) {
+					throw new ApiError("No file uploaded", 400, "NO_FILE_UPLOADED");
+				}
+
+				const title = (data.fields.title as any)?.value as string | undefined;
+
+				const result = await fastify.db.transaction(async (tx) => {
+					const driveFile = await googleDriveService.uploadPDF(data.file, data.filename);
+					driveFileId = driveFile.id;
+
+					await googleDriveService.makeFilePublic(driveFile.id);
+
+					const userResult = await tx
+						.select({ id: users.id })
+						.from(users)
+						.where(eq(users.authId, request.user!.id))
+						.limit(1);
+
+					if (!userResult.length) {
+						throw new ApiError("Local user not found", 404, "USER_NOT_FOUND");
+					}
+
+					const [newDocument] = await tx
+						.insert(documents)
+						.values({
+							title: title?.trim() ?? driveFile.name,
+							fileName: driveFile.name,
+							fileUrl: driveFile.webViewLink,
+							fileId: driveFile.id,
+							uploadedBy: userResult[0].id,
+						})
+						.returning();
+
+					return { newDocument };
+				});
+
+				return reply.success({ document: result.newDocument }, "Document uploaded successfully", 201);
+			} catch (error) {
+				if (driveFileId) {
+					await googleDriveService.deleteFile(driveFileId);
+				}
+
+				console.error(error);
+				throw error;
 			}
-
-			const driveFile = await googleDriveService.uploadPDF(data.file, data.filename);
-			await googleDriveService.makeFilePublic(driveFile.id);
-
-			const { title } = request.body as { title?: string };
-
-			const [newDocument] = await fastify.db
-				.insert(documents)
-				.values({
-					title: title?.trim() ?? driveFile.name,
-					fileName: driveFile.name,
-					fileUrl: driveFile.webViewLink,
-					fileId: driveFile.id,
-					uploadedBy: request.user?.id,
-				})
-				.returning();
-
-			return reply.success(
-				{
-					document: newDocument,
-				},
-				"Document uploaded successfully",
-				201,
-			);
 		},
 	);
 }
