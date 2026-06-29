@@ -3,10 +3,12 @@ import errorHandlerPlugin from "~/plugins/error-handler";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
 import { connectDB } from "@inspection-report-portal/db";
-import { clerkAuthMiddleware, createClerkClient } from "~/lib/clerk";
+import { createClerkClient } from "~/lib/clerk";
 import { clerkPlugin } from "@clerk/fastify";
 import { authRoutes } from "~/routes/auth.routes";
 import { documentRoutes } from "~/routes/document.routes";
+import multipart from "@fastify/multipart";
+import { clerkAuthMiddleware } from "~/middlewares/clerk";
 
 export async function server(fastify: FastifyInstance) {
 	await fastify.register(errorHandlerPlugin);
@@ -33,6 +35,13 @@ export async function server(fastify: FastifyInstance) {
 		if (request.url.startsWith("/api")) {
 			await clerkAuthMiddleware(request);
 		}
+	});
+
+	fastify.register(multipart, {
+		limits: {
+			fileSize: 50 * 1024 * 1024,
+			files: 1,
+		},
 	});
 
 	await fastify.register(authRoutes, { prefix: "/api/auth" });

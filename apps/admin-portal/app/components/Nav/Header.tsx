@@ -1,5 +1,5 @@
 import { SignOutButton } from "@clerk/react-router";
-import { LogOut, Settings, User } from "lucide-react";
+import { Settings, User } from "lucide-react";
 import type { ComponentProps } from "react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
