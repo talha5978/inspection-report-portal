@@ -1,5 +1,5 @@
-import { documents, users } from "@inspection-report-portal/db";
-import { eq } from "drizzle-orm";
+import { documentAssignments, documents, users } from "@inspection-report-portal/db";
+import { count, desc, eq, ilike, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "~/middlewares/roleGaurd";
 import { googleDriveService } from "~/services/google-drive.service";
@@ -59,6 +59,77 @@ export async function documentRoutes(fastify: FastifyInstance) {
 					await googleDriveService.deleteFile(driveFileId);
 				}
 
+				console.error(error);
+				throw error;
+			}
+		},
+	);
+
+	fastify.get(
+		"/list",
+		{
+			preHandler: [requireRole(["admin"])],
+		},
+		async (request, reply) => {
+			try {
+				const {
+					pageIndex = "0",
+					pageSize = "10",
+					search = "",
+				} = request.query as {
+					pageIndex?: string;
+					pageSize?: string;
+					search?: string;
+				};
+
+				const page = parseInt(pageIndex);
+				const limit = parseInt(pageSize);
+				const offset = page * limit;
+
+				const searchTerm = search.trim();
+
+				let whereCondition = undefined;
+				if (searchTerm) {
+					whereCondition = or(
+						ilike(documents.title, `%${searchTerm}%`),
+						ilike(documents.fileName, `%${searchTerm}%`),
+					);
+				}
+
+				const docs = await fastify.db
+					.select({
+						id: documents.id,
+						title: documents.title,
+						fileName: documents.fileName,
+						fileUrl: documents.fileUrl,
+						createdAt: documents.createdAt,
+						assignedClients: count(documentAssignments.id),
+					})
+					.from(documents)
+					.leftJoin(documentAssignments, eq(documents.id, documentAssignments.documentId))
+					.where(whereCondition)
+					.groupBy(documents.id)
+					.orderBy(desc(documents.createdAt))
+					.limit(limit)
+					.offset(offset);
+
+				const totalResult = await fastify.db
+					.select({ count: count() })
+					.from(documents)
+					.where(whereCondition);
+
+				const total = totalResult[0].count;
+
+				return reply.success({
+					documents: docs,
+					pagination: {
+						page,
+						pageSize: limit,
+						total,
+						pageCount: Math.ceil(total / limit),
+					},
+				});
+			} catch (error) {
 				console.error(error);
 				throw error;
 			}

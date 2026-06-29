@@ -8,5 +8,8 @@ export default [
 
 	index("routes/home.tsx"),
 
-	...prefix("documents", [route("new", "./routes/Documents/new.tsx")]),
+	...prefix("documents", [
+		index("./routes/Documents/documents.tsx"),
+		route("new", "./routes/Documents/new.tsx"),
+	]),
 ] satisfies RouteConfig;

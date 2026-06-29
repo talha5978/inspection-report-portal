@@ -27,7 +27,7 @@ importers:
         dependencies:
             "@clerk/react-router":
                 specifier: ^3.3.1
-                version: 3.3.1(react-dom@19.2.7(react@19.2.7))(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
+                version: 3.5.1(react-dom@19.2.7(react@19.2.7))(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
             "@hookform/resolvers":
                 specifier: ^5.4.0
                 version: 5.4.0(react-hook-form@7.80.0(react@19.2.7))
@@ -46,6 +46,9 @@ importers:
             "@react-router/serve":
                 specifier: 8.0.0
                 version: 8.0.0(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@5.9.3)
+            "@tanstack/react-table":
+                specifier: ^8.21.3
+                version: 8.21.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             class-variance-authority:
                 specifier: ^0.7.1
                 version: 0.7.1
@@ -58,6 +61,9 @@ importers:
             lucide-react:
                 specifier: ^1.21.0
                 version: 1.21.0(react@19.2.7)
+            motion:
+                specifier: ^12.42.0
+                version: 12.42.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             next-themes:
                 specifier: ^0.4.6
                 version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -130,7 +136,7 @@ importers:
                 version: 3.8.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             "@clerk/fastify":
                 specifier: ^3.1.42
-                version: 3.1.42(fastify@5.8.5)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+                version: 3.1.42(fastify@5.9.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             "@fastify/cookie":
                 specifier: ^11.0.2
                 version: 11.0.2
@@ -148,7 +154,7 @@ importers:
                 version: 0.45.2(postgres@3.4.9)
             fastify:
                 specifier: ^5.8.5
-                version: 5.8.5
+                version: 5.9.0
             fastify-plugin:
                 specifier: ^6.0.0
                 version: 6.0.0
@@ -467,16 +473,16 @@ packages:
         peerDependencies:
             fastify: ">=5"
 
-    "@clerk/react-router@3.3.1":
+    "@clerk/react-router@3.5.1":
         resolution:
             {
-                integrity: sha512-hNblYG5ZH8dTN5wlBWlN52AlcUfym1iQC/l5Sj1viRT5AqfFy+RjKPQo/B5pIP0PvTl5YDt7bumMAqJoX+1Ocw==,
+                integrity: sha512-fCa7bE9067+3Le9sJVWSLh7r5u+c/Bn1WG4Xa3hEZDQLq+RlH/5zc2JjnqZYsbaLdVPe4lvkXripzTa02bqXHA==,
             }
         engines: { node: ">=20.9.0" }
         peerDependencies:
             react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
             react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
-            react-router: ^7.9.0
+            react-router: ^7.9.0 || ^8.0.0
 
     "@clerk/react@6.11.1":
         resolution:
@@ -3127,11 +3133,28 @@ packages:
         peerDependencies:
             vite: ^5.2.0 || ^6 || ^7 || ^8
 
-    "@tanstack/query-core@5.101.1":
+    "@tanstack/query-core@5.101.2":
         resolution:
             {
-                integrity: sha512-Y6Y92dkXtNqx67m2pMSxUsA3zOCwv862JexZRP8/EPwvKXMPu9m8rv43spiXWzOUIggQ3SQApttALStzhA8B4g==,
+                integrity: sha512-hH5MLoJhF7KaIGd7q3xTXGXvslI+GYlM1Z/35aSHHWaCJWB7XvTSHYuV3eM7tw+aE0mT/xMro4M4Q9rCGHT0lw==,
             }
+
+    "@tanstack/react-table@8.21.3":
+        resolution:
+            {
+                integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==,
+            }
+        engines: { node: ">=12" }
+        peerDependencies:
+            react: ">=16.8"
+            react-dom: ">=16.8"
+
+    "@tanstack/table-core@8.21.3":
+        resolution:
+            {
+                integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==,
+            }
+        engines: { node: ">=12" }
 
     "@ts-morph/common@0.27.0":
         resolution:
@@ -4323,10 +4346,10 @@ packages:
                 integrity: sha512-fZOty7z3O7vOliF6d8bHE3wiEh1KcNnKEQensSgTk9C1DvN6nRLS++XVd86v33Hw/8u9Un8A1zDrQ8ujcQDHEg==,
             }
 
-    fastify@5.8.5:
+    fastify@5.9.0:
         resolution:
             {
-                integrity: sha512-Yqptv59pQzPgQUSIm87hMqHJmdkb1+GPxdE6vW6FRyVE9G86mt7rOghitiU4JHRaTyDUk9pfeKmDeu70lAwM4Q==,
+                integrity: sha512-VMS5lE0zj+MZlJpQa3Qv5iGjfun0H2N7VRgoBwpcTNQ2bdIQpv7fDpb+HGteGbicBsGkzGS+X+hdx9mmrfWuHQ==,
             }
 
     fastq@1.20.1:
@@ -4415,6 +4438,23 @@ packages:
                 integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==,
             }
         engines: { node: ">= 0.6" }
+
+    framer-motion@12.42.0:
+        resolution:
+            {
+                integrity: sha512-wp7EJnfWaaEScVygKv3e20udoRz+LbtxScsuTkakAxfXmt+ReC6WyPW2nINRAGvd+hG9odwcjBLyOTPjH5pBRA==,
+            }
+        peerDependencies:
+            "@emotion/is-prop-valid": "*"
+            react: ^18.0.0 || ^19.0.0
+            react-dom: ^18.0.0 || ^19.0.0
+        peerDependenciesMeta:
+            "@emotion/is-prop-valid":
+                optional: true
+            react:
+                optional: true
+            react-dom:
+                optional: true
 
     fresh@2.0.0:
         resolution:
@@ -5369,6 +5409,35 @@ packages:
                 integrity: sha512-zSkVu3t18r39pw4ixfBKvfZi3y2UOqr7d4WYwcj3m8nXpEQK4rPO6GLzs/CExoRgmX3y9EjmmcXqv6jq0SK46g==,
             }
         engines: { node: ">= 0.8.0" }
+
+    motion-dom@12.42.0:
+        resolution:
+            {
+                integrity: sha512-M63h4n8R+quJdNhBwuLlgxM+OLYa9+I/T2pzDRboB9fLXRdbou+Gw7Zury+SkpaCyACP1JHSjHgZ1EgTkBr30w==,
+            }
+
+    motion-utils@12.39.0:
+        resolution:
+            {
+                integrity: sha512-8nadJAJjTtqRkmRF36FoJTrywK9nnFmnPwnSMyxaOCU7GDjN9RTMJIxx9De8ErM+vpPhMccr/6fo5WciyQLnMQ==,
+            }
+
+    motion@12.42.0:
+        resolution:
+            {
+                integrity: sha512-Qhwvu9sVl5/URSq5CNzwMCpSKK8Uhnrwb6VO977kZyj/wOCS7mWebJUnBoHx5cZU1Zv8a9BD5CSICWKAlrLJgA==,
+            }
+        peerDependencies:
+            "@emotion/is-prop-valid": "*"
+            react: ^18.0.0 || ^19.0.0
+            react-dom: ^18.0.0 || ^19.0.0
+        peerDependenciesMeta:
+            "@emotion/is-prop-valid":
+                optional: true
+            react:
+                optional: true
+            react-dom:
+                optional: true
 
     ms@2.0.0:
         resolution:
@@ -7068,17 +7137,17 @@ snapshots:
             - react
             - react-dom
 
-    "@clerk/fastify@3.1.42(fastify@5.8.5)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)":
+    "@clerk/fastify@3.1.42(fastify@5.9.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)":
         dependencies:
             "@clerk/backend": 3.8.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             "@clerk/shared": 4.22.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-            fastify: 5.8.5
+            fastify: 5.9.0
             fastify-plugin: 5.1.0
         transitivePeerDependencies:
             - react
             - react-dom
 
-    "@clerk/react-router@3.3.1(react-dom@19.2.7(react@19.2.7))(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)":
+    "@clerk/react-router@3.5.1(react-dom@19.2.7(react@19.2.7))(react-router@8.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)":
         dependencies:
             "@clerk/backend": 3.8.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
             "@clerk/react": 6.11.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -7098,7 +7167,7 @@ snapshots:
 
     "@clerk/shared@4.22.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)":
         dependencies:
-            "@tanstack/query-core": 5.101.1
+            "@tanstack/query-core": 5.101.2
             dequal: 2.0.3
             glob-to-regexp: 0.4.1
             js-cookie: 3.0.7
@@ -8618,7 +8687,15 @@ snapshots:
             tailwindcss: 4.3.1
             vite: 8.1.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
 
-    "@tanstack/query-core@5.101.1": {}
+    "@tanstack/query-core@5.101.2": {}
+
+    "@tanstack/react-table@8.21.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)":
+        dependencies:
+            "@tanstack/table-core": 8.21.3
+            react: 19.2.7
+            react-dom: 19.2.7(react@19.2.7)
+
+    "@tanstack/table-core@8.21.3": {}
 
     "@ts-morph/common@0.27.0":
         dependencies:
@@ -9294,7 +9371,7 @@ snapshots:
 
     fastify-plugin@6.0.0: {}
 
-    fastify@5.8.5:
+    fastify@5.9.0:
         dependencies:
             "@fastify/ajv-compiler": 4.0.5
             "@fastify/error": 4.2.0
@@ -9370,6 +9447,15 @@ snapshots:
             fetch-blob: 3.2.0
 
     forwarded@0.2.0: {}
+
+    framer-motion@12.42.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+        dependencies:
+            motion-dom: 12.42.0
+            motion-utils: 12.39.0
+            tslib: 2.8.1
+        optionalDependencies:
+            react: 19.2.7
+            react-dom: 19.2.7(react@19.2.7)
 
     fresh@2.0.0: {}
 
@@ -9871,6 +9957,20 @@ snapshots:
             on-headers: 1.1.0
         transitivePeerDependencies:
             - supports-color
+
+    motion-dom@12.42.0:
+        dependencies:
+            motion-utils: 12.39.0
+
+    motion-utils@12.39.0: {}
+
+    motion@12.42.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+        dependencies:
+            framer-motion: 12.42.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+            tslib: 2.8.1
+        optionalDependencies:
+            react: 19.2.7
+            react-dom: 19.2.7(react@19.2.7)
 
     ms@2.0.0: {}
 
