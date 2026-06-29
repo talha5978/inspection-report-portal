@@ -1,7 +1,5 @@
 import { type FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
 import { users, type User } from "@inspection-report-portal/db";
-import { getAuth } from "@clerk/fastify";
 import { ApiError } from "~/utils/ApiError";
 import { requireRole } from "~/middlewares/roleGaurd";
 
@@ -10,55 +8,70 @@ export async function authRoutes(fastify: FastifyInstance) {
 		"/create-client",
 		{
 			preHandler: [requireRole(["admin"])],
+			schema: {
+				body: {
+					type: "object",
+					required: ["email", "password", "firstName", "lastName"],
+					properties: {
+						email: {
+							type: "string",
+							format: "email",
+						},
+						password: {
+							type: "string",
+							minLength: 8,
+						},
+						firstName: {
+							type: "string",
+							minLength: 1,
+						},
+						lastName: {
+							type: "string",
+							minLength: 1,
+						},
+					},
+					additionalProperties: false,
+				},
+			},
 		},
 		async (request, reply) => {
-			const auth = getAuth(request);
-			if (!auth.userId) {
-				throw new ApiError("Unauthorized", 401, "UNAUTHORIZED");
-			}
-
-			const clerkUser = await fastify.clerk.users.getUser(auth.userId);
-
-			if (!clerkUser) {
-				throw new ApiError("Clerk user not found", 500, "INTERNAL_SERVER_ERROR");
-			}
-
-			const body = {
-				authId: clerkUser.id,
-				email: clerkUser.emailAddresses[0].emailAddress,
-				name: clerkUser.fullName,
+			const input = request.body as {
+				email: string;
+				password: string;
+				firstName: string;
+				lastName: string;
 			};
 
-			if (!body.authId) {
-				throw new ApiError("Clerk user id is required", 400, "MISSING_CLERK_USER_ID");
+			for (const key in input) {
+				input[key as keyof typeof input] = input[key as keyof typeof input].trim();
 			}
 
-			if (!body.email) {
-				throw new ApiError("Email is required", 400, "MISSING_EMAIL");
-			}
-
-			const existingUser = await fastify.db.query.users.findFirst({
-				where: eq(users.authId, body.authId),
+			const createdUser = await fastify.clerk.users.createUser({
+				firstName: input.firstName,
+				lastName: input.lastName,
+				emailAddress: [input.email.toLowerCase()],
+				username: input.email.split("@")[0].toLowerCase(),
+				password: input.password,
+				publicMetadata: { role: "client" },
+				privateMetadata: { role: "client" },
 			});
 
-			console.log(existingUser, body);
-
-			if (existingUser) {
-				return reply.success<User>(existingUser, "User synced successfully", 200);
+			if (!createdUser) {
+				throw new ApiError("Clerk user not found", 500, "MISSING_USER");
 			}
 
-			const [createdUser] = await fastify.db
+			const [dbUser] = await fastify.db
 				.insert(users)
 				.values({
-					authId: body.authId,
-					email: body.email,
-					name: body.name ?? "",
+					authId: createdUser.id,
+					email: input.email.toLowerCase(),
+					name: input.firstName + " " + input.lastName,
 					isActive: true,
 					role: "client",
 				})
 				.returning();
 
-			return reply.success<User>(createdUser, "User created successfully", 201);
+			return reply.success<User>(dbUser, "User created successfully", 201);
 		},
 	);
 }
