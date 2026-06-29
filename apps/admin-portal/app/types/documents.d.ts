@@ -14,3 +14,8 @@ export type DocumentListResponse = {
 		pageCount: number;
 	};
 };
+
+export type AssignDocResponse = {
+	assignedCount: number;
+	totalRequested: number;
+};

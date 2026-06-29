@@ -1,6 +1,7 @@
 import { getAuth } from "@clerk/react-router/server";
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { MoreHorizontal, PlusCircle, Search, Eye, Trash2, Check, Users } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Search, Eye, Trash2, Check, Users, UserCheck } from "lucide-react";
+import { useState } from "react";
 import {
 	Form,
 	Link,
@@ -9,8 +10,10 @@ import {
 	useLoaderData,
 	useLocation,
 	useNavigation,
+	useRevalidator,
 } from "react-router";
 import { getDocumentList } from "~/api/documents";
+import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
 import { DataTable, DataTableSkeleton, TableColumnsToggle } from "~/components/Table/data-table";
 import TableCopyField from "~/components/Table/TableId";
 import { Badge } from "~/components/ui/badge";
@@ -59,9 +62,15 @@ export const loader = async (args: LoaderFunctionArgs) => {
 
 export default function DocumentsPage() {
 	const loaderData = useLoaderData<typeof loader>();
+	const revalidator = useRevalidator();
 	const { data, query, pageIndex, pageSize } = loaderData;
 	const navigation = useNavigation();
 	const location = useLocation();
+	const [assignDialogState, setAssignDialog] = useState<{
+		open: boolean;
+		documentId: string;
+		documentTitle: string;
+	} | null>(null);
 
 	const pageCount = Math.ceil(data.pagination.total / pageSize);
 	const isFetching = navigation.state === "loading" && navigation.location?.pathname === location.pathname;
@@ -137,6 +146,18 @@ export default function DocumentsPage() {
 									View
 								</Link>
 							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									setAssignDialog({
+										open: true,
+										documentId: doc.id,
+										documentTitle: doc.title,
+									})
+								}
+							>
+								<UserCheck className="h-4 w-4" />
+								Assign
+							</DropdownMenuItem>
 							<DropdownMenuItem variant="destructive">
 								<Trash2 className="h-4 w-4" />
 								Delete
@@ -165,52 +186,66 @@ export default function DocumentsPage() {
 	});
 
 	return (
-		<div className="flex-1 flex flex-col gap-6">
-			<div className="flex items-center justify-between flex-wrap gap-2">
-				<div>
-					<h1 className="text-3xl font-semibold tracking-tight">Documents</h1>
-					<p className="text-muted-foreground">Manage inspection reports</p>
+		<>
+			<div className="flex-1 flex flex-col gap-6">
+				<div className="flex items-center justify-between flex-wrap gap-2">
+					<div>
+						<h1 className="text-3xl font-semibold tracking-tight">Documents</h1>
+						<p className="text-muted-foreground">Manage inspection reports</p>
+					</div>
+
+					<Link to="/documents/new" className="ml-auto inline" prefetch="intent">
+						<Button>
+							<PlusCircle className="mr-2 h-4 w-4" />
+							New Document
+						</Button>
+					</Link>
 				</div>
 
-				<Link to="/documents/new" className="ml-auto inline" prefetch="intent">
-					<Button>
-						<PlusCircle className="mr-2 h-4 w-4" />
-						New Document
-					</Button>
-				</Link>
-			</div>
+				{query && <p className="text-sm text-muted-foreground">Showing results for "{query}"</p>}
 
-			{query && <p className="text-sm text-muted-foreground">Showing results for "{query}"</p>}
+				<div className="space-y-4">
+					<div className="flex justify-between items-center">
+						<Form method="get" className="max-w-sm">
+							<div className="relative">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+								<Input
+									placeholder="Search documents..."
+									name="q"
+									defaultValue={query}
+									className="pl-10"
+								/>
+							</div>
+						</Form>
 
-			<div className="space-y-4">
-				<div className="flex justify-between items-center">
-					<Form method="get" className="max-w-sm">
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-							<Input
-								placeholder="Search documents..."
-								name="q"
-								defaultValue={query}
-								className="pl-10"
-							/>
-						</div>
-					</Form>
+						<TableColumnsToggle table={table} />
+					</div>
 
-					<TableColumnsToggle table={table} />
+					{isFetching ? (
+						<DataTableSkeleton noOfSkeletons={5} columns={tableColumns} />
+					) : (
+						<DataTable
+							table={table}
+							onPageChange={onPageChange}
+							onPageSizeChange={onPageSizeChange}
+							pageSize={pageSize}
+							total={data.pagination.total}
+						/>
+					)}
 				</div>
-
-				{isFetching ? (
-					<DataTableSkeleton noOfSkeletons={5} columns={tableColumns} />
-				) : (
-					<DataTable
-						table={table}
-						onPageChange={onPageChange}
-						onPageSizeChange={onPageSizeChange}
-						pageSize={pageSize}
-						total={data.pagination.total}
-					/>
-				)}
 			</div>
-		</div>
+			{assignDialogState && (
+				<AssignClientsDialog
+					documentId={assignDialogState?.documentId}
+					documentTitle={assignDialogState?.documentTitle}
+					open={assignDialogState?.open}
+					onOpenChange={(open) => setAssignDialog({ open, documentId: "", documentTitle: "" })}
+					onSuccess={(open) => {
+						setAssignDialog({ open: open ?? false, documentId: "", documentTitle: "" });
+						revalidator.revalidate();
+					}}
+				/>
+			)}
+		</>
 	);
 }

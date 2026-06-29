@@ -1,5 +1,5 @@
 import { documentAssignments, documents, users } from "@inspection-report-portal/db";
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "~/middlewares/roleGaurd";
 import { googleDriveService } from "~/services/google-drive.service";
@@ -129,6 +129,79 @@ export async function documentRoutes(fastify: FastifyInstance) {
 						pageCount: Math.ceil(total / limit),
 					},
 				});
+			} catch (error) {
+				console.error(error);
+				throw error;
+			}
+		},
+	);
+
+	fastify.post(
+		"/assign",
+		{
+			preHandler: [requireRole(["admin"])],
+			schema: {
+				body: {
+					type: "object",
+					required: ["documentId", "clientIds"],
+					properties: {
+						documentId: { type: "string", format: "uuid" },
+						clientIds: {
+							type: "array",
+							items: { type: "string", format: "uuid" },
+							minItems: 1,
+						},
+					},
+					additionalProperties: false,
+				},
+			},
+		},
+		async (request, reply) => {
+			try {
+				const { documentId, clientIds } = request.body as {
+					documentId: string;
+					clientIds: string[];
+				};
+
+				const [document] = await fastify.db
+					.select({ title: documents.title })
+					.from(documents)
+					.where(eq(documents.id, documentId))
+					.limit(1);
+
+				if (!document) {
+					throw new ApiError("Document not found", 404, "DOCUMENT_NOT_FOUND");
+				}
+
+				// Verify clients exist and are clients
+				const validClients = await fastify.db
+					.select({ id: users.id })
+					.from(users)
+					.where(and(inArray(users.id, clientIds), eq(users.role, "client")));
+
+				if (validClients.length !== clientIds.length) {
+					throw new ApiError("Some clients are invalid or not found", 400, "INVALID_CLIENTS");
+				}
+
+				const assignments = clientIds.map((clientId) => ({
+					documentId,
+					clientId,
+				}));
+
+				const inserted = await fastify.db
+					.insert(documentAssignments)
+					.values(assignments)
+					.onConflictDoNothing()
+					.returning();
+
+				return reply.success(
+					{
+						assignedCount: inserted.length,
+						totalRequested: clientIds.length,
+					},
+					`Clients assigned successfully to the document ${document.title}`,
+					200,
+				);
 			} catch (error) {
 				console.error(error);
 				throw error;
