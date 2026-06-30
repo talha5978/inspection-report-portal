@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { Loader2, ExternalLink, Users } from "lucide-react";
+import { Loader2, ExternalLink, Users, Trash2 } from "lucide-react";
 import { getToken } from "@clerk/react-router";
 import { getDocumentDetail } from "~/api/documents";
+import { unassignClient } from "~/api/documents";
 import { toast } from "sonner";
 import type { DocumentDetail } from "~/types/documents";
-import type { SuccessResponse } from "~/types/response";
+import type { ErrorResponse, SuccessResponse } from "~/types/response";
 import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
 import { useRevalidator } from "react-router";
 
@@ -58,10 +59,35 @@ export default function DocumentDetailSheet({ documentId, open, onOpenChange }: 
 		fetchDocumentDetail(newSize);
 	};
 
+	const handleUnassign = async (clientId: string) => {
+		if (!document) return;
+
+		const confirmed = confirm(
+			`Are you sure you want to remove this client's access from "${document.title}"?`,
+		);
+
+		if (!confirmed) return;
+
+		try {
+			const token = await getToken();
+			const result = await unassignClient(token!, document.id, clientId);
+
+			if (result.success && (result as SuccessResponse<{ deleted: boolean }>).data.deleted) {
+				toast.success("Client unassigned successfully");
+				fetchDocumentDetail();
+				revalidator.revalidate();
+			} else {
+				toast.error((result as ErrorResponse).error?.message || "Failed to unassign client");
+			}
+		} catch (error) {
+			toast.error("Something went wrong");
+		}
+	};
+
 	return (
 		<>
 			<Sheet open={open} onOpenChange={onOpenChange}>
-				<SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+				<SheetContent className="w-full max-w-2xl overflow-y-auto">
 					<SheetHeader className="pb-6 border-b">
 						<SheetTitle>Document Details</SheetTitle>
 						<SheetDescription>View document and assigned clients</SheetDescription>
@@ -107,35 +133,36 @@ export default function DocumentDetailSheet({ documentId, open, onOpenChange }: 
 									</Badge>
 								</div>
 
-								<div className="grid gap-2">
+								<div className="space-y-3">
 									{assignedClients.length > 0 ? (
 										assignedClients.map((client) => (
 											<div
 												key={client.id}
-												className="flex justify-between items-center p-3 rounded-md border bg-background hover:bg-muted/40 transition-colors"
+												className="flex justify-between items-center p-4 rounded-lg border bg-card"
 											>
-												<div className="grid gap-0.5">
-													<p className="text-sm font-medium leading-none">
-														{client.name}
-													</p>
+												<div>
+													<p className="font-medium">{client.name}</p>
 													<p className="text-sm text-muted-foreground">
 														{client.email}
 													</p>
 												</div>
-												{!client.isActive && (
-													<Badge className="capitalize" variant={"destructive"}>
-														{"Access Revoked"}
-													</Badge>
-												)}
+
+												<Button
+													variant="destructive"
+													size="icon-sm"
+													onClick={() => handleUnassign(client.id)}
+												>
+													<Trash2 className="w-4 h-4" />
+												</Button>
 											</div>
 										))
 									) : (
-										<div className=" text-center py-6 border rounded-md border-dashed">
+										<div className="text-center py-6 border rounded-md border-dashed">
 											<p className="text-sm text-muted-foreground">
 												No clients assigned yet
 											</p>
 											<Button
-												variant={"link"}
+												variant="link"
 												onClick={() =>
 													setAssignDialog({
 														open: true,
@@ -160,7 +187,7 @@ export default function DocumentDetailSheet({ documentId, open, onOpenChange }: 
 											disabled={isLoading}
 										>
 											{isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-											Load More
+											Load More Clients
 										</Button>
 									</div>
 								)}
@@ -169,14 +196,14 @@ export default function DocumentDetailSheet({ documentId, open, onOpenChange }: 
 					) : null}
 				</SheetContent>
 			</Sheet>
+
 			{assignDialogState && (
 				<AssignClientsDialog
-					documentId={assignDialogState?.documentId}
-					documentTitle={assignDialogState?.documentTitle}
-					open={assignDialogState?.open}
+					documentId={assignDialogState.documentId}
+					documentTitle={assignDialogState.documentTitle}
+					open={assignDialogState.open}
 					onOpenChange={(open) => setAssignDialog({ open, documentId: "", documentTitle: "" })}
-					onSuccess={(open) => {
-						setAssignDialog({ open: open ?? false, documentId: "", documentTitle: "" });
+					onSuccess={() => {
 						revalidator.revalidate();
 						fetchDocumentDetail();
 					}}

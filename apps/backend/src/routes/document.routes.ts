@@ -274,4 +274,49 @@ export async function documentRoutes(fastify: FastifyInstance) {
 			}
 		},
 	);
+
+	fastify.post(
+		"/unassign",
+		{
+			preHandler: [requireRole(["admin"])],
+			schema: {
+				body: {
+					type: "object",
+					required: ["documentId", "clientId"],
+					properties: {
+						documentId: { type: "string", format: "uuid" },
+						clientId: { type: "string", format: "uuid" },
+					},
+					additionalProperties: false,
+				},
+			},
+		},
+		async (request, reply) => {
+			try {
+				const { documentId, clientId } = request.body as {
+					documentId: string;
+					clientId: string;
+				};
+
+				const deleted = await fastify.db
+					.delete(documentAssignments)
+					.where(
+						and(
+							eq(documentAssignments.documentId, documentId),
+							eq(documentAssignments.clientId, clientId),
+						),
+					)
+					.returning();
+
+				if (deleted.length === 0) {
+					throw new ApiError("Assignment not found", 404, "ASSIGNMENT_NOT_FOUND");
+				}
+
+				return reply.success({ deleted: true }, "Client unassigned successfully", 200);
+			} catch (error) {
+				console.error(error);
+				throw error;
+			}
+		},
+	);
 }

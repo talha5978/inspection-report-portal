@@ -85,3 +85,20 @@ export async function getDocumentDetail(
 	const data = await res.json();
 	return data;
 }
+
+export async function unassignClient(
+	token: string,
+	documentId: string,
+	clientId: string,
+): ApiResponse<{ deleted: boolean }> {
+	const res = await fetch(`${ROUTE_BASE}/unassign`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ documentId, clientId }),
+	});
+
+	return res.json();
+}
