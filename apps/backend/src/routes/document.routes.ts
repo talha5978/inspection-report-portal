@@ -208,4 +208,70 @@ export async function documentRoutes(fastify: FastifyInstance) {
 			}
 		},
 	);
+
+	fastify.get(
+		"/document/:id",
+		{
+			preHandler: [requireRole(["admin"])],
+			schema: {
+				params: {
+					type: "object",
+					required: ["id"],
+					properties: {
+						id: { type: "string", format: "uuid" },
+					},
+					additionalProperties: true,
+				},
+			},
+		},
+		async (request, reply) => {
+			try {
+				const { id } = request.params as { id: string };
+
+				const { pageSize = "20" } = request.query as {
+					pageSize?: string;
+				};
+
+				const [document] = await fastify.db
+					.select({
+						id: documents.id,
+						title: documents.title,
+						fileName: documents.fileName,
+						fileUrl: documents.fileUrl,
+						createdAt: documents.createdAt,
+						assignedClients: count(documentAssignments.id),
+					})
+					.from(documents)
+					.leftJoin(documentAssignments, eq(documents.id, documentAssignments.documentId))
+					.where(eq(documents.id, id))
+					.groupBy(documents.id)
+					.limit(1);
+
+				if (!document) {
+					throw new ApiError("Document not found", 404, "DOCUMENT_NOT_FOUND");
+				}
+
+				const assignedClients = await fastify.db
+					.select({
+						id: users.id,
+						name: users.name,
+						email: users.email,
+						isActive: users.isActive,
+					})
+					.from(documentAssignments)
+					.innerJoin(users, eq(documentAssignments.clientId, users.id))
+					.where(eq(documentAssignments.documentId, id))
+					.orderBy(users.name)
+					.limit(parseInt(pageSize));
+
+				return reply.success({
+					document,
+					assignedClients,
+				});
+			} catch (error) {
+				console.error(error);
+				throw error;
+			}
+		},
+	);
 }

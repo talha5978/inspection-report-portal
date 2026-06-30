@@ -1,5 +1,5 @@
 import { API_URL } from "~/lib/fetch.config";
-import type { AssignDocResponse, DocumentListResponse } from "~/types/documents";
+import type { AssignDocResponse, DocumentDetail, DocumentListResponse } from "~/types/documents";
 import type { ApiResponse } from "~/types/response";
 
 const ROUTE_BASE = `${API_URL}/documents`;
@@ -57,6 +57,29 @@ export async function assignDocument(
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({ documentId, clientIds }),
+	});
+
+	const data = await res.json();
+	return data;
+}
+
+export async function getDocumentDetail(
+	token: string,
+	documentId: string,
+	pageSize?: number,
+): ApiResponse<DocumentDetail> {
+	const params = new URLSearchParams();
+
+	if (pageSize !== undefined) params.append("pageSize", pageSize.toString());
+
+	const url = `${ROUTE_BASE}/document/${documentId}${params.toString() ? `?${params.toString()}` : ""}`;
+
+	const res = await fetch(url, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+		},
 	});
 
 	const data = await res.json();

@@ -14,6 +14,7 @@ import {
 } from "react-router";
 import { getDocumentList } from "~/api/documents";
 import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
+import DocumentDetailSheet from "~/components/Documents/DocumentDetailSheet";
 import { DataTable, DataTableSkeleton, TableColumnsToggle } from "~/components/Table/data-table";
 import TableCopyField from "~/components/Table/TableId";
 import { Badge } from "~/components/ui/badge";
@@ -70,6 +71,10 @@ export default function DocumentsPage() {
 		open: boolean;
 		documentId: string;
 		documentTitle: string;
+	} | null>(null);
+	const [documentDetail, setDocumentDetail] = useState<{
+		open: boolean;
+		documentId: string;
 	} | null>(null);
 
 	const pageCount = Math.ceil(data.pagination.total / pageSize);
@@ -140,11 +145,16 @@ export default function DocumentsPage() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem asChild>
-								<Link to={`/documents/${doc.id}`} prefetch="intent">
-									<Eye className="h-4 w-4" />
-									View
-								</Link>
+							<DropdownMenuItem
+								onClick={() =>
+									setDocumentDetail({
+										open: true,
+										documentId: doc.id,
+									})
+								}
+							>
+								<Eye className="h-4 w-4" />
+								View
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() =>
@@ -244,6 +254,13 @@ export default function DocumentsPage() {
 						setAssignDialog({ open: open ?? false, documentId: "", documentTitle: "" });
 						revalidator.revalidate();
 					}}
+				/>
+			)}
+			{documentDetail && (
+				<DocumentDetailSheet
+					documentId={documentDetail.documentId}
+					open={documentDetail.open}
+					onOpenChange={(open) => setDocumentDetail({ open, documentId: "" })}
 				/>
 			)}
 		</>
