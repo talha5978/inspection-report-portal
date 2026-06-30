@@ -13,6 +13,7 @@ import { createDocument } from "~/api/documents";
 import { getToken } from "@clerk/react-router";
 import { Label } from "~/components/ui/label";
 import { Link, useNavigate } from "react-router";
+import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
 
 const NewDocumentSchema = z.object({
 	title: z
@@ -35,6 +36,8 @@ export function meta() {
 export default function NewDocumentPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [createdDocument, setCreatedDocument] = useState<any>(null);
+	const [showAssignDialog, setShowAssignDialog] = useState(false);
 	const navigate = useNavigate();
 
 	const form = useForm<NewDocumentInput>({
@@ -62,9 +65,10 @@ export default function NewDocumentPage() {
 
 			if (result.success) {
 				toast.success("Document uploaded successfully!");
+				setCreatedDocument(result.data.document);
+				setShowAssignDialog(true); // Open assignment dialog
 				form.reset();
 				setSelectedFile(null);
-				navigate("/documents");
 			} else {
 				toast.error(result.error?.message || "Failed to upload document");
 			}
@@ -73,6 +77,11 @@ export default function NewDocumentPage() {
 		} finally {
 			setIsSubmitting(false);
 		}
+	};
+
+	const handleAssignEnd = () => {
+		setShowAssignDialog(false);
+		navigate("/documents");
 	};
 
 	return (
@@ -159,6 +168,17 @@ export default function NewDocumentPage() {
 					</Form>
 				</CardContent>
 			</Card>
+
+			{createdDocument && (
+				<AssignClientsDialog
+					documentId={createdDocument.id}
+					documentTitle={createdDocument.title}
+					open={showAssignDialog}
+					onOpenChange={setShowAssignDialog}
+					onSuccess={handleAssignEnd}
+					onCancel={handleAssignEnd}
+				/>
+			)}
 		</div>
 	);
 }

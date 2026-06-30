@@ -23,6 +23,7 @@ interface AssignClientsDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onSuccess?: (open?: boolean) => void;
+	onCancel?: () => void;
 }
 
 export default function AssignClientsDialog({
@@ -31,6 +32,7 @@ export default function AssignClientsDialog({
 	open,
 	onOpenChange,
 	onSuccess,
+	onCancel,
 }: AssignClientsDialogProps) {
 	const [clients, setClients] = useState<ClientsListResponse["clients"]>([]);
 	const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -177,7 +179,13 @@ export default function AssignClientsDialog({
 				</div>
 
 				<DialogFooter className="flex gap-3">
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
+					<Button
+						variant="outline"
+						onClick={() => {
+							if (onCancel) onCancel();
+							onOpenChange(false);
+						}}
+					>
 						Cancel
 					</Button>
 					<Button onClick={handleAssign} disabled={isSubmitting || selectedClients.length === 0}>
