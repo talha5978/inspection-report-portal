@@ -1,4 +1,4 @@
-import { documentAssignments, documents, users } from "@inspection-report-portal/db";
+import { documentAssignments, documents, qrCodes, users } from "@inspection-report-portal/db";
 import { and, count, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "~/middlewares/roleGaurd";
@@ -317,6 +317,66 @@ export async function documentRoutes(fastify: FastifyInstance) {
 				console.error(error);
 				throw error;
 			}
+		},
+	);
+
+	fastify.delete(
+		"/document/:id",
+		{
+			preHandler: [requireRole(["admin"])],
+			schema: {
+				params: {
+					type: "object",
+					required: ["id"],
+					properties: {
+						id: { type: "string", format: "uuid" },
+					},
+					additionalProperties: false,
+				},
+			},
+		},
+		async (request, reply) => {
+			const { id } = request.params as { id: string };
+			let driveFileId: string | null = null;
+
+			const result = await fastify.db.transaction(async (tx) => {
+				const [document] = await tx
+					.select({ fileId: documents.fileId })
+					.from(documents)
+					.where(eq(documents.id, id))
+					.limit(1);
+
+				if (!document) {
+					throw new ApiError("Document not found", 404, "DOCUMENT_NOT_FOUND");
+				}
+
+				driveFileId = document.fileId;
+
+				const assignments = await tx
+					.select({ count: count() })
+					.from(documentAssignments)
+					.where(eq(documentAssignments.documentId, id));
+
+				if (assignments[0].count > 0) {
+					throw new ApiError(
+						"Cannot delete document. Remove all client assignments first.",
+						400,
+						"DOCUMENT_HAS_ASSIGNMENTS",
+					);
+				}
+
+				await tx.delete(qrCodes).where(eq(qrCodes.documentId, id));
+
+				await tx.delete(documents).where(eq(documents.id, id));
+
+				if (driveFileId) {
+					await googleDriveService.deleteFile(driveFileId);
+				}
+
+				return { success: true };
+			});
+
+			return reply.success(result, "Document deleted successfully", 200);
 		},
 	);
 }

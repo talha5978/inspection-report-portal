@@ -102,3 +102,15 @@ export async function unassignClient(
 
 	return res.json();
 }
+
+export async function deleteDocument(token: string, documentId: string) {
+	const res = await fetch(`${ROUTE_BASE}/document/${documentId}`, {
+		method: "DELETE",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	const data = await res.json();
+	return data;
+}

@@ -1,3 +1,4 @@
+import { getToken } from "@clerk/react-router";
 import { getAuth } from "@clerk/react-router/server";
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
@@ -22,7 +23,8 @@ import {
 	useNavigation,
 	useRevalidator,
 } from "react-router";
-import { getDocumentList } from "~/api/documents";
+import { toast } from "sonner";
+import { deleteDocument, getDocumentList } from "~/api/documents";
 import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
 import DocumentDetailSheet from "~/components/Documents/DocumentDetailSheet";
 import CreateQRDialog from "~/components/QrCodes/CreateQrCodeDialog";
@@ -95,6 +97,30 @@ export default function DocumentsPage() {
 
 	const pageCount = Math.ceil(data.pagination.total / pageSize);
 	const isFetching = navigation.state === "loading" && navigation.location?.pathname === location.pathname;
+
+	const handleDelete = async (documentId: string) => {
+		const confirmed = confirm(
+			`Are you sure you want to delete this document? This action cannot be undone.`,
+		);
+
+		if (!confirmed) return;
+
+		toast.warning("Deleting document...", { duration: 1500 });
+
+		try {
+			const token = await getToken();
+			const result = await deleteDocument(token!, documentId);
+
+			if (result.success) {
+				toast.success("Document deleted successfully");
+				revalidator.revalidate();
+			} else {
+				toast.error((result as ErrorResponse).error.message ?? "Something went wrong");
+			}
+		} catch (error) {
+			toast.error("Something went wrong");
+		}
+	};
 
 	const tableColumns: ColumnDef<DocumentListResponse["documents"][number]>[] = [
 		{
@@ -196,7 +222,7 @@ export default function DocumentsPage() {
 								<QrCodeIcon className="h-4 w-4" />
 								Generate QR Code
 							</DropdownMenuItem>
-							<DropdownMenuItem variant="destructive">
+							<DropdownMenuItem variant="destructive" onClick={() => handleDelete(doc.id)}>
 								<Trash2 className="h-4 w-4" />
 								Delete
 							</DropdownMenuItem>

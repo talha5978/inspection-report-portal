@@ -16,6 +16,7 @@ export async function server(fastify: FastifyInstance) {
 
 	await fastify.register(fastifyCors, {
 		origin: [process.env.ADMIN_PORTAL_URL!, process.env.CLIENT_PORTAL_URL!],
+		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		credentials: true,
 	});
 
