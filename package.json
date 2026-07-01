@@ -32,5 +32,21 @@
 		"turbo": "^2.0.0"
 	},
 	"packageManager": "pnpm@11.1.1",
-	"type": "module"
+	"type": "module",
+	"keywords": [
+		"inspection-report",
+		"qr-code",
+		"document-management",
+		"equipment-inspection",
+		"client-portal",
+		"pdf-management",
+		"google-drive",
+		"clerk-auth",
+		"drizzle-orm",
+		"fastify",
+		"react-router",
+		"monorepo",
+		"turborepo",
+		"pnpm-workspaces"
+	]
 }
