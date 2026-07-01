@@ -20,4 +20,11 @@ export default defineConfig({
 	server: {
 		port: 5174,
 	},
+	define: {
+		"process.env.VITE_ENV": JSON.stringify(process.env.VITE_ENV),
+		"process.env.CLERK_PUBLISHABLE_KEY": JSON.stringify(process.env.CLERK_PUBLISHABLE_KEY),
+		"process.env.CLERK_SIGN_IN_URL": JSON.stringify(process.env.CLERK_SIGN_IN_URL),
+		"process.env.CLERK_SIGN_UP_URL": JSON.stringify(process.env.CLERK_SIGN_UP_URL),
+		"process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL),
+	},
 });

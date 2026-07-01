@@ -59,7 +59,7 @@ export default function QrCodesPage() {
 	const isFetching = navigation.state === "loading" && navigation.location?.pathname === location.pathname;
 
 	const genQr = async (shortCode: string) => {
-		const qrUrl = `${window.location.origin}/view/${shortCode}`;
+		const qrUrl = `${process.env.CLIENT_PORTAL_URL}/view/${shortCode}`;
 		const qrDataUrl = await QRCode.toDataURL(qrUrl, {
 			width: 300,
 			margin: 1,

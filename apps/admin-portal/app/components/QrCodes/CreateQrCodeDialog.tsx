@@ -48,7 +48,7 @@ export default function CreateQRDialog({
 
 			if (result.success) {
 				const shortCode = (result as SuccessResponse<QrCode>).data.shortCode;
-				const qrUrl = `${window.location.origin}/view/${shortCode}`;
+				const qrUrl = `${process.env.CLIENT_PORTAL_URL}/view/${shortCode}`;
 
 				const qrDataUrl = await QRCODE.toDataURL(qrUrl, {
 					width: 300,

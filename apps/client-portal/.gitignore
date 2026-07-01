@@ -7,3 +7,5 @@
 /build/
 /dist/
 .turbo
+# clerk configuration (can include secrets)
+/.clerk/

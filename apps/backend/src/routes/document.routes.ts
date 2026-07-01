@@ -379,4 +379,78 @@ export async function documentRoutes(fastify: FastifyInstance) {
 			return reply.success(result, "Document deleted successfully", 200);
 		},
 	);
+
+	fastify.get(
+		"/client/list",
+		{
+			preHandler: [requireRole(["client"])],
+		},
+		async (request, reply) => {
+			const { pageIndex = "0", search = "" } = request.query as {
+				pageIndex?: string;
+				search?: string;
+			};
+
+			const page = parseInt(pageIndex);
+			const limit = 20;
+			const offset = page * limit;
+
+			const searchTerm = search.trim();
+
+			const [user] = await fastify.db
+				.select({ id: users.id })
+				.from(users)
+				.where(eq(users.authId, request.user!.id))
+				.limit(1);
+
+			if (!user) {
+				throw new ApiError("Local user not found", 404, "USER_NOT_FOUND");
+			}
+
+			let whereCondition = eq(documentAssignments.clientId, user.id);
+
+			if (searchTerm) {
+				whereCondition = and(
+					whereCondition,
+					or(
+						ilike(documents.title, `%${searchTerm}%`),
+						ilike(documents.fileName, `%${searchTerm}%`),
+					),
+				) as any;
+			}
+
+			const docs = await fastify.db
+				.select({
+					id: documents.id,
+					title: documents.title,
+					fileName: documents.fileName,
+					fileUrl: documents.fileUrl,
+					createdAt: documents.createdAt,
+				})
+				.from(documentAssignments)
+				.innerJoin(documents, eq(documentAssignments.documentId, documents.id))
+				.where(whereCondition)
+				.orderBy(desc(documents.createdAt))
+				.limit(limit)
+				.offset(offset);
+
+			const totalResult = await fastify.db
+				.select({ count: count() })
+				.from(documentAssignments)
+				.innerJoin(documents, eq(documentAssignments.documentId, documents.id))
+				.where(whereCondition);
+
+			const total = totalResult[0].count;
+
+			return reply.success({
+				documents: docs ?? [],
+				pagination: {
+					page,
+					pageSize: limit,
+					total,
+					pageCount: Math.ceil(total / limit),
+				},
+			});
+		},
+	);
 }

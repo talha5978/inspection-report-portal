@@ -1,7 +1,17 @@
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-
 import type { Route } from "./+types/root";
 import "./app.css";
+import { ClerkProvider } from "@clerk/react-router";
+import { clerkMiddleware, rootAuthLoader } from "@clerk/react-router/server";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+
+export const middleware = [
+	clerkMiddleware({
+		publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+		secretKey: process.env.CLERK_SECRET_KEY,
+	}),
+];
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -12,13 +22,15 @@ export const links: Route.LinksFunction = () => [
 	},
 	{
 		rel: "stylesheet",
-		href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+		href: "ttps://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap",
 	},
 ];
 
+export const loader = (args: Route.LoaderArgs) => rootAuthLoader(args);
+
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -34,8 +46,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export default function App() {
-	return <Outlet />;
+function ClientClerkProvider({
+	children,
+	loaderData,
+}: {
+	children: React.ReactNode;
+	loaderData: Route.ComponentProps["loaderData"];
+}) {
+	const [isMounted, setIsMounted] = useState(false);
+
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
+
+	if (!isMounted) {
+		return (
+			<div className="flex min-h-screen w-screen justify-center items-center">
+				<Loader2 className="animate-spin text-primary w-8 h-8" />
+			</div>
+		);
+	}
+
+	return (
+		<ClerkProvider
+			loaderData={loaderData}
+			publishableKey={process.env.CLERK_PUBLISHABLE_KEY}
+			polling={false}
+		>
+			{children}
+		</ClerkProvider>
+	);
+}
+
+export default function App({ loaderData }: Route.ComponentProps) {
+	return (
+		<ClientClerkProvider loaderData={loaderData}>
+			<Outlet />
+		</ClientClerkProvider>
+	);
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
@@ -47,14 +95,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 		message = error.status === 404 ? "404" : "Error";
 		details =
 			error.status === 404 ? "The requested page could not be found." : error.statusText || details;
-	} else if (import.meta.env.DEV && error && error instanceof Error) {
+	} else if (process.env.VITE_ENV === "development" && error && error instanceof Error) {
 		details = error.message;
 		stack = error.stack;
 	}
 
 	return (
 		<main className="pt-16 p-4 container mx-auto">
-			<h1>{message}</h1>
+			<h1 className="text-lg text-bold">{message}</h1>
 			<p>{details}</p>
 			{stack && (
 				<pre className="w-full p-4 overflow-x-auto">

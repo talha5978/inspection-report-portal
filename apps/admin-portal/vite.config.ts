@@ -25,6 +25,8 @@ export default defineConfig({
 		"process.env.CLERK_PUBLISHABLE_KEY": JSON.stringify(process.env.CLERK_PUBLISHABLE_KEY),
 		"process.env.CLERK_SIGN_IN_URL": JSON.stringify(process.env.CLERK_SIGN_IN_URL),
 		"process.env.CLERK_SIGN_UP_URL": JSON.stringify(process.env.CLERK_SIGN_UP_URL),
+		"process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL),
+		"process.env.CLIENT_PORTAL_URL": JSON.stringify(process.env.CLIENT_PORTAL_URL),
 		global: "globalThis",
 	},
 
