@@ -5,6 +5,8 @@ export default [
 
 	route("create-user", "./routes/Auth/create-user.tsx"),
 
+	route("view/:shortCode", "./routes/QR/view.ts"),
+
 	route("/", "./routes/protected-layout.tsx", [
 		index("./routes/home.tsx"),
 

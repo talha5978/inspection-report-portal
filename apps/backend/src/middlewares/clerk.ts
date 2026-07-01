@@ -23,6 +23,5 @@ export const clerkAuthMiddleware = async (request: FastifyRequest) => {
 		};
 	} catch (err) {
 		console.error("Clerk auth error:", err);
-		throw new ApiError("Invalid or expired token", 401, "UNAUTHORIZED");
 	}
 };

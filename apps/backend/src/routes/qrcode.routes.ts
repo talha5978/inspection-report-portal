@@ -82,4 +82,38 @@ export async function qrCodeRoutes(fastify: FastifyInstance) {
 			}
 		},
 	);
+
+	fastify.get(
+		"/view/:shortCode",
+		{
+			schema: {
+				params: {
+					type: "object",
+					required: ["shortCode"],
+					properties: {
+						shortCode: { type: "string" },
+					},
+					additionalProperties: false,
+				},
+			},
+		},
+		async (request, reply) => {
+			const { shortCode } = request.params as { shortCode: string };
+
+			const [result] = await fastify.db
+				.select({
+					fileUrl: documents.fileUrl,
+				})
+				.from(qrCodes)
+				.innerJoin(documents, eq(qrCodes.documentId, documents.id))
+				.where(eq(qrCodes.shortCode, shortCode))
+				.limit(1);
+
+			if (!result) {
+				throw new ApiError("QR Code not found or invalid", 404, "QR_NOT_FOUND");
+			}
+
+			return reply.success({ fileUrl: result.fileUrl }, "Document retrieved successfully", 200);
+		},
+	);
 }

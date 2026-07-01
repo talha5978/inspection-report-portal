@@ -20,3 +20,12 @@ export async function createQrCode(
 	const d = await res.json();
 	return d;
 }
+
+export async function getDocumentByQR(shortCode: string): ApiResponse<{ fileUrl: string }> {
+	const res = await fetch(`${ROUTE_BASE}/view/${shortCode}`, {
+		method: "GET",
+	});
+
+	const data = await res.json();
+	return data;
+}
