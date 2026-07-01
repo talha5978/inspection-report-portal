@@ -1,7 +1,7 @@
-import { SignOutButton } from "@clerk/react-router";
-import { Settings, User } from "lucide-react";
+import { useClerk } from "@clerk/react-router";
+import { LogOutIcon, Settings, User } from "lucide-react";
 import type { ComponentProps } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	DropdownMenu,
@@ -14,6 +14,14 @@ import {
 import { cn } from "~/lib/utils";
 
 export function Header({ className, ...props }: ComponentProps<"header">) {
+	const { signOut } = useClerk();
+	const navigate = useNavigate();
+
+	const handleSignOut = async () => {
+		await signOut();
+		navigate("/sign-in");
+	};
+
 	return (
 		<header
 			className={cn(
@@ -56,16 +64,9 @@ export function Header({ className, ...props }: ComponentProps<"header">) {
 						<Settings />
 						Settings
 					</DropdownMenuItem>
-					<DropdownMenuItem variant="destructive">
-						<SignOutButton
-							redirectUrl="sign-in"
-							// children={
-							// 	<>
-							// 		<LogOut className="w-4 h-4" />
-							// 		Sign Out
-							// 	</>
-							// }
-						/>
+					<DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+						<LogOutIcon />
+						Sign Out
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

@@ -1,6 +1,16 @@
 import { getAuth } from "@clerk/react-router/server";
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { MoreHorizontal, PlusCircle, Search, Eye, Trash2, Check, Users, UserCheck } from "lucide-react";
+import {
+	MoreHorizontal,
+	PlusCircle,
+	Search,
+	Eye,
+	Trash2,
+	Check,
+	Users,
+	UserCheck,
+	QrCodeIcon,
+} from "lucide-react";
 import { useState } from "react";
 import {
 	Form,
@@ -15,6 +25,7 @@ import {
 import { getDocumentList } from "~/api/documents";
 import AssignClientsDialog from "~/components/Documents/AssignClientsDialog";
 import DocumentDetailSheet from "~/components/Documents/DocumentDetailSheet";
+import CreateQRDialog from "~/components/QrCodes/CreateQrCodeDialog";
 import { DataTable, DataTableSkeleton, TableColumnsToggle } from "~/components/Table/data-table";
 import TableCopyField from "~/components/Table/TableId";
 import { Badge } from "~/components/ui/badge";
@@ -75,6 +86,11 @@ export default function DocumentsPage() {
 	const [documentDetail, setDocumentDetail] = useState<{
 		open: boolean;
 		documentId: string;
+	} | null>(null);
+	const [qrcodeDialogState, setQrCodeDialog] = useState<{
+		open: boolean;
+		documentId: string;
+		documentTitle: string;
 	} | null>(null);
 
 	const pageCount = Math.ceil(data.pagination.total / pageSize);
@@ -167,6 +183,18 @@ export default function DocumentsPage() {
 							>
 								<UserCheck className="h-4 w-4" />
 								Assign
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() =>
+									setQrCodeDialog({
+										open: true,
+										documentId: doc.id,
+										documentTitle: doc.title,
+									})
+								}
+							>
+								<QrCodeIcon className="h-4 w-4" />
+								Generate QR Code
 							</DropdownMenuItem>
 							<DropdownMenuItem variant="destructive">
 								<Trash2 className="h-4 w-4" />
@@ -261,6 +289,15 @@ export default function DocumentsPage() {
 					documentId={documentDetail.documentId}
 					open={documentDetail.open}
 					onOpenChange={(open) => setDocumentDetail({ open, documentId: "" })}
+				/>
+			)}
+			{qrcodeDialogState && (
+				<CreateQRDialog
+					documentId={qrcodeDialogState?.documentId}
+					documentTitle={qrcodeDialogState?.documentTitle}
+					open={qrcodeDialogState?.open}
+					onOpenChange={(_) => setQrCodeDialog(null)}
+					onSuccess={(_) => setQrCodeDialog(null)}
 				/>
 			)}
 		</>

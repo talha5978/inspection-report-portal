@@ -9,6 +9,7 @@ import { authRoutes } from "~/routes/auth.routes";
 import { documentRoutes } from "~/routes/document.routes";
 import multipart from "@fastify/multipart";
 import { clerkAuthMiddleware } from "~/middlewares/clerk";
+import { qrCodeRoutes } from "~/routes/qrcode.routes";
 
 export async function server(fastify: FastifyInstance) {
 	await fastify.register(errorHandlerPlugin);
@@ -46,4 +47,5 @@ export async function server(fastify: FastifyInstance) {
 
 	await fastify.register(authRoutes, { prefix: "/api/auth" });
 	await fastify.register(documentRoutes, { prefix: "/api/documents" });
+	await fastify.register(qrCodeRoutes, { prefix: "/api/qrcodes" });
 }

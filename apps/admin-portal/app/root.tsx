@@ -1,13 +1,10 @@
+import { Buffer } from "buffer";
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
-import { ClerkProvider, RedirectToSignIn, Show } from "@clerk/react-router";
+import { ClerkProvider } from "@clerk/react-router";
 import { clerkMiddleware, rootAuthLoader } from "@clerk/react-router/server";
 import { useEffect, useState } from "react";
-import { Toaster } from "~/components/ui/sonner";
-import { TopLoadingBar } from "~/components/Loaders/TopLoadingBar";
-import SidebarLayout from "~/components/Nav/sidebar-layout";
-import { Header } from "~/components/Nav/Header";
 import { Loader2 } from "lucide-react";
 
 export const middleware = [
@@ -66,9 +63,12 @@ function ClientClerkProvider({
 	if (!isMounted) {
 		return (
 			<div className="flex min-h-screen w-screen justify-center items-center">
-				<Loader2 className="animate-spin w-7 h-7" />
+				<Loader2 className="animate-spin text-primary w-8 h-8" />
 			</div>
 		);
+	} else {
+		window.Buffer = Buffer;
+		globalThis.Buffer = Buffer;
 	}
 
 	return (
@@ -85,21 +85,7 @@ function ClientClerkProvider({
 export default function App({ loaderData }: Route.ComponentProps) {
 	return (
 		<ClientClerkProvider loaderData={loaderData}>
-			<div className="flex h-svh w-screen flex-col overflow-hidden">
-				<Show when="signed-in">
-					<Header />
-					<div className="flex-1 min-h-0">
-						<SidebarLayout>
-							<Outlet />
-						</SidebarLayout>
-						<Toaster />
-						<TopLoadingBar />
-					</div>
-				</Show>
-				<Show when="signed-out">
-					<RedirectToSignIn redirectUrl={"/sign-in"} />
-				</Show>
-			</div>
+			<Outlet />
 		</ClientClerkProvider>
 	);
 }

@@ -23,5 +23,16 @@ export default defineConfig({
 	define: {
 		"process.env.VITE_ENV": JSON.stringify(process.env.VITE_ENV),
 		"process.env.CLERK_PUBLISHABLE_KEY": JSON.stringify(process.env.CLERK_PUBLISHABLE_KEY),
+		"process.env.CLERK_SIGN_IN_URL": JSON.stringify(process.env.CLERK_SIGN_IN_URL),
+		"process.env.CLERK_SIGN_UP_URL": JSON.stringify(process.env.CLERK_SIGN_UP_URL),
+		global: "globalThis",
+	},
+
+	optimizeDeps: {
+		esbuildOptions: {
+			define: {
+				global: "globalThis",
+			},
+		},
 	},
 });
