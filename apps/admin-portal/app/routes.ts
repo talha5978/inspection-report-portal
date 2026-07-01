@@ -19,5 +19,7 @@ export default [
 			index("./routes/Clients/clients.tsx"),
 			route("new", "./routes/Clients/new.tsx"),
 		]),
+
+		route("qr-codes", "./routes/QR/qr-codes.tsx"),
 	]),
 ] satisfies RouteConfig;

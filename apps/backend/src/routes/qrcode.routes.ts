@@ -1,5 +1,5 @@
 import { documents, qrCodes, users } from "@inspection-report-portal/db";
-import { eq } from "drizzle-orm";
+import { count, desc, eq, ilike, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "~/middlewares/roleGaurd";
 import { ApiError } from "~/utils/ApiError";
@@ -114,6 +114,69 @@ export async function qrCodeRoutes(fastify: FastifyInstance) {
 			}
 
 			return reply.success({ fileUrl: result.fileUrl }, "Document retrieved successfully", 200);
+		},
+	);
+
+	fastify.get(
+		"/list",
+		{
+			preHandler: [requireRole(["admin"])],
+		},
+		async (request, reply) => {
+			const { pageIndex = "0", search = "" } = request.query as {
+				pageIndex?: string;
+				search?: string;
+			};
+
+			const page = parseInt(pageIndex);
+			const limit = 20;
+			const offset = page * limit;
+
+			const searchTerm = search.trim();
+
+			let whereCondition = undefined;
+
+			if (searchTerm) {
+				whereCondition = or(
+					ilike(documents.title, `%${searchTerm}%`),
+					ilike(qrCodes.equipmentName, `%${searchTerm}%`),
+					ilike(qrCodes.equipmentLocation, `%${searchTerm}%`),
+				);
+			}
+
+			const qrList = await fastify.db
+				.select({
+					id: qrCodes.id,
+					shortCode: qrCodes.shortCode,
+					equipmentName: qrCodes.equipmentName,
+					equipmentLocation: qrCodes.equipmentLocation,
+					documentTitle: documents.title,
+					createdAt: qrCodes.createdAt,
+				})
+				.from(qrCodes)
+				.innerJoin(documents, eq(qrCodes.documentId, documents.id))
+				.where(whereCondition)
+				.orderBy(desc(qrCodes.createdAt))
+				.limit(limit)
+				.offset(offset);
+
+			const totalResult = await fastify.db
+				.select({ count: count() })
+				.from(qrCodes)
+				.innerJoin(documents, eq(qrCodes.documentId, documents.id))
+				.where(whereCondition);
+
+			const total = totalResult[0].count;
+
+			return reply.success({
+				qrCodes: qrList,
+				pagination: {
+					page,
+					pageSize: limit,
+					total,
+					pageCount: Math.ceil(total / limit),
+				},
+			});
 		},
 	);
 }
