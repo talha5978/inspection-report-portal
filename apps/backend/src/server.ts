@@ -10,6 +10,7 @@ import { documentRoutes } from "~/routes/document.routes";
 import multipart from "@fastify/multipart";
 import { clerkAuthMiddleware } from "~/middlewares/clerk";
 import { qrCodeRoutes } from "~/routes/qrcode.routes";
+import helmet from "@fastify/helmet";
 
 export async function server(fastify: FastifyInstance) {
 	await fastify.register(errorHandlerPlugin);
@@ -18,6 +19,18 @@ export async function server(fastify: FastifyInstance) {
 		origin: [process.env.ADMIN_PORTAL_URL!, process.env.CLIENT_PORTAL_URL!],
 		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		credentials: true,
+	});
+
+	fastify.register(helmet, {
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				imgSrc: ["'self'", "data:", "https:"],
+			},
+		},
+		crossOriginEmbedderPolicy: false,
 	});
 
 	await fastify.register(fastifyCookie);
