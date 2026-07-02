@@ -35,6 +35,13 @@ inspection-report-portal/
 └── .env                   # Root environment variables
 ```
 
+## Core Problem Solved
+
+- Digitally manage inspection reports through a simple portal
+- Assign reports to specific clients
+- Provide public access of inspection reports via qr-code printed and pasted on eqipments
+- Allow field workers to quickly access reports by scanning QR codes on field
+
 ## Quick Start
 
 ### 1. Clone & Install
@@ -76,10 +83,16 @@ pnpm db:push
 # Or run migrations (production)
 pnpm db:migrate
 ```
-
-## Core Problem Solved
-
-- Digitally manage inspection reports through a simple portal
-- Assign reports to specific clients
-- Provide public access of inspection reports via qr-code printed and pasted on eqipments
-- Allow field workers to quickly access reports by scanning QR codes on field
+## Clerk Setup
+**Create account normally as we do but change the sesssion token settings to support our project logic**
+1. Open Clerk Dashboard
+2. In settings, go to Sessions tab
+3. Look for `Customize Session Tokens` section
+4. Add the following config there.
+    ```bash
+    {
+        "id": "{{user.id}}",
+        "role": "{{user.public_metadata.role}}",
+        "email": "{{user.primary_email_address}}"
+    }
+    ```
