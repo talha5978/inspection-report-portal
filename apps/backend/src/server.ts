@@ -11,6 +11,7 @@ import multipart from "@fastify/multipart";
 import { clerkAuthMiddleware } from "~/middlewares/clerk";
 import { qrCodeRoutes } from "~/routes/qrcode.routes";
 import helmet from "@fastify/helmet";
+import csrf from "@fastify/csrf-protection";
 
 export async function server(fastify: FastifyInstance) {
 	await fastify.register(errorHandlerPlugin);
@@ -21,7 +22,7 @@ export async function server(fastify: FastifyInstance) {
 		credentials: true,
 	});
 
-	fastify.register(helmet, {
+	await fastify.register(helmet, {
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
@@ -31,6 +32,10 @@ export async function server(fastify: FastifyInstance) {
 			},
 		},
 		crossOriginEmbedderPolicy: false,
+	});
+
+	await fastify.register(csrf, {
+		cookieOpts: { httpOnly: true, secure: process.env.NODE_ENV === "production" },
 	});
 
 	await fastify.register(fastifyCookie);
